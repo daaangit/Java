@@ -1,4 +1,9 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,6 +15,7 @@ import java.util.Scanner;
 import java.util.Random;
 import java.math.BigDecimal;
 import java.util.InputMismatchException;
+import java.io.Serializable;
 
 public class FinalBank {
     public static void main(String[] args)
@@ -18,12 +24,14 @@ public class FinalBank {
         scanner.useLocale(Locale.US);
         
         Account newAccount = new Account();
-        UI mainUI = new UI(newAccount, scanner);
+        UI mainUI = new UI(scanner);
         mainUI.mainUI();
     }
 
-    public static class Transaction
+    public static class Transaction implements Serializable
     {
+        private static final long serialVersionUID = 1L;
+
         Transaction(String operation, double value, String date, String time, boolean successful, String transferInfo)
         {
             this.operation = operation;
@@ -47,13 +55,35 @@ public class FinalBank {
         String transferInfo;
         double value;
         boolean successful;
+
+        public String getOperation()
+        {
+            return operation;
+        }
+
+        public double getValue()
+        {
+            return value;
+        }
+
+        public boolean isSuccessful()
+        {
+            return successful;
+        }
+
+        public String getDate()
+        {
+            return date_time;
+        }
+
     }
 
-    public static class Account
+    public static class Account implements Serializable
     {
+        private static final long serialVersionUID = 1L;
         private List<Transaction> transactionList;
         private String name;
-        final public String accountID;
+        public String accountID;
         double balance;
         public LocalDateTime now = LocalDateTime.now();
 
@@ -152,6 +182,22 @@ public class FinalBank {
             return this.name;
         }
 
+        public void setID(String ID)
+        {
+            this.accountID = ID;
+        }
+
+        public void setBalance(double balance)
+        {
+            this.balance = balance;
+        }
+
+        public void setTransactionList(List<Transaction> transactions)
+        {
+            this.transactionList = transactions;
+        }
+
+
     }
 
     public static class UI
@@ -161,12 +207,34 @@ public class FinalBank {
         boolean active;
         Scanner scanner;
         int currentAccountsNumber = 0;
-        UI(Account account, Scanner scanner)
+
+        UI(Scanner scanner)
         {
-            this.accountsList.add(new Account());
-            currentAccountsNumber++;
+            loadData();
+            enableAutoSave();
             this.scanner = scanner;
-            //numform.setRoundingMode(RoundingMode.UNNECESSARY);
+        }
+
+        private void loadData()
+        {
+            System.out.println("Loading data...");
+            this.accountsList = FileManager.loadAccounts();
+            this.currentAccountsNumber = accountsList.size();
+        }
+
+        private void saveData()
+        {
+            boolean trySave = FileManager.saveAccounts(accountsList);
+            if(trySave)
+                System.out.println("Saved successfuly");
+        }
+
+        private void enableAutoSave()
+        {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> 
+            {   System.out.println("Saving data...");
+                saveData();
+            }));
         }
 
         public void mainUI()
@@ -176,9 +244,17 @@ public class FinalBank {
             {   
                 clearTerminal();
                 System.out.println("Available accounts: ");    
-                for(int i = 0; i < currentAccountsNumber; ++i)
+                if(currentAccountsNumber == 0)
                 {
-                    System.out.println((i + 1) + ". " + accountsList.get(i).getID() + " " + accountsList.get(i).getName());
+                    System.out.println("No accounts yet");
+                }
+                else
+                {
+                    for(int i = 0; i < currentAccountsNumber; ++i)
+                    {
+                        System.out.println((i + 1) + ". " + ConsoleColors.GREEN_BOLD + accountsList.get(i).getID() + 
+                            ConsoleColors.RESET + " " + accountsList.get(i).getName());
+                    }
                 }
                 System.out.println("Enter account number to log in or enter \"0\" to create new, \"-1\" to terminate");
                 try
@@ -227,13 +303,14 @@ public class FinalBank {
                                 4.Transaction List
                                 5.Transfer
                                 6.Set name
+                                7.Delete account
                                 (-1).exit
                                 """);
                     System.out.println(ConsoleColors.GREEN + "Enter option number:" + ConsoleColors.RESET);
                     int window_num = scanner.nextInt();
                     scanner.nextLine();
 
-                    if(window_num > 6 || window_num < -1)
+                    if(window_num > 7 || window_num < -1)
                         throw new IllegalArgumentException("Exception: Enter valid option number");
 
                     switch(window_num)
@@ -250,6 +327,7 @@ public class FinalBank {
                             4.Transaction List
                             5.Transfer
                             6.Set name
+                            7.Delete account
                             (-1).exit
                             """);
                             break;
@@ -506,7 +584,7 @@ public class FinalBank {
                                         {
                                             boolean isEmpty = true;
 
-                                            for(int i = 0; i <  account.transactionList.size(); ++i)
+                                            for(int i = 0; i < account.transactionList.size(); ++i)
                                             {
                                                 current = transactionList.get(i);
                                                 if(current.operation.contains("Deposit"))
@@ -529,7 +607,7 @@ public class FinalBank {
                                         {
                                             boolean isEmpty = true;
 
-                                            for(int i = 0; i <  account.transactionList.size(); ++i)
+                                            for(int i = 0; i < account.transactionList.size(); ++i)
                                             {
                                                 current = transactionList.get(i);
                                                 if(current.operation.contains("Withdrawal"))
@@ -546,8 +624,28 @@ public class FinalBank {
 
                                     case '6':
                                     {
+                                        if(transactionList.isEmpty())
+                                                System.out.println("No transactions yet");
+                                        else
+                                        {
+                                            boolean isEmpty = true;
 
+                                            for(int i = 0; i < account.transactionList.size(); ++i)
+                                            {
+                                                current = transactionList.get(i);
+                                                if(current.operation.contains("Transfer"))
+                                                {
+                                                    printTransaction(current);
+                                                    isEmpty = false;
+                                                }
+                                            }
+                                            if(isEmpty)
+                                                System.out.println("No matching transactions found");
+                                        }
+
+                                        break;
                                     }
+
                                 }
 
                             }
@@ -576,7 +674,7 @@ public class FinalBank {
                             for(int i = 0; i < currentAccountsNumber; ++i)
                             {
                                 if(i != index)
-                                    System.out.println((i + 1) + ". " + accountsList.get(i).getID());
+                                    System.out.println((i + 1) + ". " + accountsList.get(i).getID() + " " + accountsList.get(i).getName());
                             }    
                             System.out.println("Enter account number: (-1 to exit)");
                             try
@@ -640,8 +738,17 @@ public class FinalBank {
                                 System.out.println("Enter any key to proceed");
                                 scanner.nextLine();
                             }
-                            
+                            break;
+                        }
 
+                        case 7: // delete account option
+                        {
+                            accountsList.remove(account);
+                            currentAccountsNumber--;
+                            System.out.println("Account was succesfully deleted");
+                            System.out.println("Enter any key to proceed");
+                            scanner.nextLine();
+                            break;
                         }
 
                         case -1: //exit
@@ -669,10 +776,12 @@ public class FinalBank {
         {
             if(current.successful)
             System.out.println(current.operation + numform.format(current.value)
-                + " RUB "+ ConsoleColors.GREEN_BOLD +  "SUCCESSFUL " + ConsoleColors.RESET + current.date_time + " " + current.transferInfo);
+                + " RUB "+ ConsoleColors.GREEN_BOLD +  "SUCCESSFUL " + ConsoleColors.RESET + current.date_time + " " + 
+                    ConsoleColors.WHITE_BOLD + current.transferInfo + ConsoleColors.RESET);
             else
             System.out.println(current.operation + numform.format(current.value)
-                + " RUB " + ConsoleColors.RED_BOLD +  "FAILED " + ConsoleColors.RESET + current.date_time + " " + current.transferInfo);
+                + " RUB " + ConsoleColors.RED_BOLD +  "FAILED " + ConsoleColors.RESET + current.date_time + " " + 
+                    ConsoleColors.WHITE_BOLD + current.transferInfo + ConsoleColors.RESET);
         }
 
         public boolean isValueValid(double value)
@@ -685,14 +794,6 @@ public class FinalBank {
             {
                 System.out.println(info.message);
                 return false;
-            }
-        }
-
-        public class InvalidInputException extends RuntimeException
-        {
-            public InvalidInputException()
-            {
-                super("Enter correct option number");
             }
         }
 
@@ -787,5 +888,51 @@ public class FinalBank {
         public static final String PURPLE_BOLD = "\033[1;35m";
         public static final String CYAN_BOLD = "\033[1;36m";
         public static final String WHITE_BOLD = "\033[1;37m";
+    }
+
+    public class FileManager
+    {
+        private static final String MAIN_DATA_FILE = "bank_data_file.dat";
+
+        public static boolean saveAccounts(List<Account> accounts)
+        {
+            System.out.println("Saving accounts...");
+
+            try(FileOutputStream fileOut = new FileOutputStream(MAIN_DATA_FILE);
+                ObjectOutputStream out = new ObjectOutputStream(fileOut))
+            {
+                out.writeObject(accounts);
+                System.out.println(accounts.size() + " accounts were succefully saved");
+                return true;
+            }
+            catch(IOException e)
+            {
+                System.out.println("Error while saving data: " + e.getMessage());
+                return false;
+            }
+        }
+
+        public static List<Account> loadAccounts()
+        {
+            File file = new File(MAIN_DATA_FILE);
+            if(!file.exists())
+            {
+                System.out.println("No data file found. Creating new...");
+                return new ArrayList<>();
+            }
+            System.out.println("Loading accounts data...");
+            try(FileInputStream fileIn = new FileInputStream(MAIN_DATA_FILE);
+            ObjectInputStream in = new ObjectInputStream(fileIn))
+            {
+                List<Account> accounts  = (List<Account>) in.readObject();
+                System.out.println(accounts.size() + " accounts were succeffuly loaded");
+                return accounts;
+            }
+            catch(IOException | ClassNotFoundException e)
+            {
+                System.out.println("Error reading data. Creating new...");
+                return new ArrayList<>();
+            }
+        }
     }
 }
