@@ -23,7 +23,6 @@ public class FinalBank {
         Scanner scanner = new Scanner(System.in);
         scanner.useLocale(Locale.US);
         
-        Account newAccount = new Account();
         UI mainUI = new UI(scanner);
         mainUI.mainUI();
     }
@@ -112,7 +111,7 @@ public class FinalBank {
             balance += value;
             Transaction current = 
                 new Transaction("Deposit +", 
-                value,LocalDate.now().toString(),LocalTime.now().toString(), true, "None");
+                value,LocalDate.now().toString(),LocalTime.now().toString(), true, "Non-transfer transaction");
             transactionList.add(current);
             return current;
         }
@@ -121,7 +120,7 @@ public class FinalBank {
         {
             Transaction current = 
                 new Transaction("Withdrawal -", value,
-                LocalDate.now().toString(), LocalTime.now().toString(), true, "None");
+                LocalDate.now().toString(), LocalTime.now().toString(), true, "Non-transfer transaction");
             if(balance < value) 
             {
                 // add to UI System.out.println("insufficient funds in the account");
@@ -315,7 +314,7 @@ public class FinalBank {
 
                     switch(window_num)
                     {
-                        case 0:// main window 
+                        case 0 -> // main window 
                         {
                             clearTerminal();
                             System.out.println("Account №" + ConsoleColors.GREEN_BOLD + account.getID() + 
@@ -330,10 +329,9 @@ public class FinalBank {
                             7.Delete account
                             (-1).exit
                             """);
-                            break;
                         }
 
-                        case 1:// deposit
+                        case 1 -> // deposit
                         {
                             clearTerminal();
                             System.out.println("Enter value to deposit(-1 to exit): ");
@@ -366,10 +364,9 @@ public class FinalBank {
                                 }
                             }
                             System.out.println("Enter 0 to return to the menu");
-                            break;
                         }
 
-                        case 2:// withdrawal
+                        case 2 -> // withdrawal
                         {
                             clearTerminal();
                             System.out.println("Enter value to withdraw(-1 to exit): ");
@@ -403,24 +400,23 @@ public class FinalBank {
                                 }
                                 catch(IllegalArgumentException | InputMismatchException e)
                                 {
-                                    System.out.println("Enter valid value(-1 to exit) ///inner catch");
+                                    System.out.println(ConsoleColors.RED_BOLD + 
+                                        "Enter valid value(-1 to exit) ///inner catch" + ConsoleColors.RESET);
                                         scanner.nextLine();/// double input issue
                                 }
                             }
-                            break;
                         }
 
-                        case 3:// check_balance
+                        case 3 -> // check_balance
                         {
                             clearTerminal();
                             System.out.println("Current balance is: " + ConsoleColors.CYAN_BOLD + 
                                 numform.format(account.getBalance()) + ConsoleColors.RESET + " RUB");
                             System.out.println("Enter any key to proceed:");
                             scanner.nextLine();
-                            break;
                         }
 
-                        case 4:// transaction list
+                        case 4 -> // transaction list
                         {
                             clearTerminal();
                             System.out.println("Account №" + ConsoleColors.CYAN_BOLD +  account.getID()+ ConsoleColors.RESET + " transaction list: ");
@@ -467,8 +463,7 @@ public class FinalBank {
 
                                 switch(optionNumber) // attribute search
                                 {
-                                    case '1': 
-                                    {
+                                    case '1' ->                                     {
                                         double x;
                                         if(optionInput.length() > 1 && optionInput.contains("."))
                                         {
@@ -497,18 +492,15 @@ public class FinalBank {
                                             catch (NumberFormatException e)
                                             {
                                                 System.out.println(ConsoleColors.RED_BOLD + "Incorrect input" + ConsoleColors.RESET);
-                                                break;
                                             }
                                         }
                                         else
                                         {
                                             throw new InputMismatchException(ConsoleColors.RED_BOLD + "Incorrect input" + ConsoleColors.RESET);
                                         }
-                                        break;
                                     }
 
-                                    case '2': 
-                                    {
+                                    case '2' ->                                     {
                                         double x;
                                         if(optionInput.length() > 1 && optionInput.contains("."))
                                         {
@@ -537,17 +529,14 @@ public class FinalBank {
                                             catch (NumberFormatException e)
                                             {
                                                 System.out.println(ConsoleColors.RED_BOLD + "Incorrect input" + ConsoleColors.RESET);
-                                                break;
                                             }
                                         }
                                         else
                                         {
                                             throw new InputMismatchException(ConsoleColors.RED_BOLD + "Incorrect input" + ConsoleColors.RESET);
                                         }
-                                        break;
                                     }
-                                    case '3':
-                                    {  
+                                    case '3' ->                                     {  
                                         if(optionInput.equals("3.U") || optionInput.equals("3.S"))
                                         {
                                             boolean successfulTransactionsSearch;
@@ -573,11 +562,9 @@ public class FinalBank {
                                         }
                                         else
                                             throw new InputMismatchException(ConsoleColors.RED_BOLD + "Incorrect input" + ConsoleColors.RESET);
-                                        break;
                                     }
 
-                                    case '4':
-                                    {
+                                    case '4' ->                                     {
                                         if(transactionList.isEmpty())
                                                 System.out.println("No transactions yet");
                                         else
@@ -596,11 +583,9 @@ public class FinalBank {
                                             if(isEmpty)
                                                 System.out.println("No matching transactions found");
                                         }
-                                        break;
                                     }
 
-                                    case '5':
-                                    {
+                                    case '5' ->                                     {
                                         if(transactionList.isEmpty())
                                                 System.out.println("No transactions yet");
                                         else
@@ -619,11 +604,9 @@ public class FinalBank {
                                             if(isEmpty)
                                                 System.out.println("No matching transactions found");
                                         }
-                                        break;
                                     }
 
-                                    case '6':
-                                    {
+                                    case '6' ->                                     {
                                         if(transactionList.isEmpty())
                                                 System.out.println("No transactions yet");
                                         else
@@ -643,7 +626,6 @@ public class FinalBank {
                                                 System.out.println("No matching transactions found");
                                         }
 
-                                        break;
                                     }
 
                                 }
@@ -657,10 +639,9 @@ public class FinalBank {
                             System.out.println("Enter any key to proceed:");
                             scanner.nextLine();
 
-                            break;
                         }
 
-                        case 5: //transfer
+                        case 5 -> //transfer
                         {
                             clearTerminal();    
                             System.out.println("Accounts available for transfer: ");    
@@ -669,7 +650,6 @@ public class FinalBank {
                                 System.out.println("No other accounts to transfer");
                                 System.out.println("Enter any key to proceed:");
                                 scanner.nextLine();
-                                break;
                             }
                             for(int i = 0; i < currentAccountsNumber; ++i)
                             {
@@ -719,11 +699,9 @@ public class FinalBank {
                                 System.out.println("Enter any key to proceed");
                                 scanner.nextLine();
                             }
-                            break;
                         }
 
-                        case 6:
-                        {
+                        case 6 ->                         {
                             System.out.println("Enter your username");
                             try{
                                 String name = scanner.nextLine();
@@ -738,23 +716,21 @@ public class FinalBank {
                                 System.out.println("Enter any key to proceed");
                                 scanner.nextLine();
                             }
-                            break;
                         }
 
-                        case 7: // delete account option
+                        case 7 -> // delete account option
                         {
                             accountsList.remove(account);
                             currentAccountsNumber--;
                             System.out.println("Account was succesfully deleted");
                             System.out.println("Enter any key to proceed");
                             scanner.nextLine();
-                            break;
+                            active = false;
                         }
 
-                        case -1: //exit
+                        case -1 -> //exit
                         {
                             active = false;
-                            break;
                         }
                     }
                 }
@@ -870,7 +846,7 @@ public class FinalBank {
 
     }
 
-    public class ConsoleColors {
+    public static class ConsoleColors {
         public static final String RESET = "\033[0m";
         public static final String BLACK = "\033[0;30m";
         public static final String RED = "\033[0;31m";
@@ -890,8 +866,9 @@ public class FinalBank {
         public static final String WHITE_BOLD = "\033[1;37m";
     }
 
-    public class FileManager
+    public static class FileManager
     {
+        
         private static final String MAIN_DATA_FILE = "bank_data_file.dat";
 
         public static boolean saveAccounts(List<Account> accounts)
@@ -911,7 +888,7 @@ public class FinalBank {
                 return false;
             }
         }
-
+        @SuppressWarnings("unchecked")
         public static List<Account> loadAccounts()
         {
             File file = new File(MAIN_DATA_FILE);
